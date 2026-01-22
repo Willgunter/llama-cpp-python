@@ -29,6 +29,7 @@ jobs:
           CIBW_BUILD: "cp310-manylinux_x86_64"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_BUILD_VERBOSITY: 3
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_ENVIRONMENT_LINUX: >-
             CMAKE_ARGS="-DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_BLAS=OFF -DGGML_NATIVE=OFF"
         run: |
