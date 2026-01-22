@@ -28,7 +28,6 @@ jobs:
         env:
           CIBW_BUILD: "cp310-manylinux_x86_64"
           CIBW_SKIP: "*-musllinux_*"
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: ""
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ENVIRONMENT_LINUX: >-
             CMAKE_ARGS="-DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_BLAS=OFF -DGGML_NATIVE=OFF"
