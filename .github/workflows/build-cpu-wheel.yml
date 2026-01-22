@@ -13,7 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v0.2.90 
           submodules: recursive
           
       - uses: actions/setup-python@v5
@@ -23,22 +22,32 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install -U pip
-          python -m pip install -U cibuildwheel
+          python -m pip install -U cibuildwheel wheel
           
-      - name: Build wheel (CPU only, static build)
+      - name: Build wheel (CPU only, skip repair)
         env:
           CIBW_BUILD: "cp310-manylinux_x86_64"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_BUILD_VERBOSITY: 1
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          # Build everything statically to avoid separate .so files
+          # Skip auditwheel repair - we'll manually tag it
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: ""
           CIBW_ENVIRONMENT_LINUX: >-
-            CMAKE_ARGS="-DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_BLAS=OFF -DGGML_NATIVE=OFF -DBUILD_SHARED_LIBS=OFF -DLLAMA_BUILD_SHARED=OFF"
+            CMAKE_ARGS="-DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_BLAS=OFF -DGGML_NATIVE=OFF"
         run: |
-          python -m cibuildwheel --output-dir wheelhouse
+          python -m cibuildwheel --output-dir wheelhouse_temp
           
-      - name: Show wheel info
+      - name: Rename wheel to manylinux
         run: |
+          mkdir -p wheelhouse
+          cd wheelhouse_temp
+          for wheel in *.whl; do
+            # Rename linux_x86_64 to manylinux_2_17_x86_64
+            new_name=$(echo "$wheel" | sed 's/linux_x86_64/manylinux_2_17_x86_64.manylinux2014_x86_64/')
+            mv "$wheel" "../wheelhouse/$new_name"
+            echo "Created: $new_name"
+          done
+          cd ..
           ls -lh wheelhouse/
           
       - uses: actions/upload-artifact@v4
