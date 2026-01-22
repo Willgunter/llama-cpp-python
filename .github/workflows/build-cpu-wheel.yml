@@ -24,14 +24,19 @@ jobs:
         run: |
           git clone --recursive https://github.com/abetlen/llama-cpp-python.git
           
-      - name: Build wheel (CPU only)
+      - name: Build wheel (CPU only, NO CUDA)
         working-directory: llama-cpp-python
         env:
           CIBW_BUILD: "cp310-manylinux_x86_64"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: ""
+          # Force CPU-only build - disable ALL accelerators
           CIBW_ENVIRONMENT_LINUX: >-
-            CMAKE_ARGS="-DGGML_BLAS=OFF -DGGML_NATIVE=OFF"
+            CMAKE_ARGS="-DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_BLAS=OFF -DGGML_NATIVE=OFF -DGGML_ACCELERATE=OFF"
+          # Also set in before-build to be extra sure
+          CIBW_BEFORE_BUILD_LINUX: >-
+            pip install cmake ninja &&
+            export CMAKE_ARGS="-DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_BLAS=OFF -DGGML_NATIVE=OFF"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
           
