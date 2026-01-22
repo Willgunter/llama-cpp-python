@@ -11,27 +11,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout llama-cpp-python
-        run: |
-          git clone --recursive https://github.com/abetlen/llama-cpp-python.git
-          cd llama-cpp-python
-          
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           
-      - name: Install dependencies
+      - name: Install cibuildwheel
         run: |
           python -m pip install -U pip
           python -m pip install -U cibuildwheel
-          python -m pip install huggingface_hub[cli]
           
-      - name: Download test model (optional)
-        env:
-          REPO_ID: Qwen/Qwen2-0.5B-Instruct-GGUF
-          MODEL_FILE: qwen2-0_5b-instruct-q8_0.gguf
+      - name: Checkout llama-cpp-python
         run: |
-          huggingface-cli download $REPO_ID $MODEL_FILE
+          git clone --recursive https://github.com/abetlen/llama-cpp-python.git
           
       - name: Build wheel (CPU only)
         working-directory: llama-cpp-python
@@ -42,15 +33,15 @@ jobs:
           CIBW_ENVIRONMENT_LINUX: >-
             CMAKE_ARGS="-DGGML_BLAS=OFF -DGGML_NATIVE=OFF"
         run: |
-          python -m cibuildwheel --output-dir ../wheelhouse
+          python -m cibuildwheel --output-dir wheelhouse
           
       - uses: actions/upload-artifact@v4
         with:
           name: wheelhouse
-          path: wheelhouse/*.whl
+          path: llama-cpp-python/wheelhouse/*.whl
           
       - name: Upload to Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: wheelhouse/*.whl
+          files: llama-cpp-python/wheelhouse/*.whl
